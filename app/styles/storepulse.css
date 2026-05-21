@@ -231,6 +231,205 @@
   background: #fafafa;
 }
 
+.storepulse-page-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+
+.storepulse-header-actions {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 12px;
+}
+
+.storepulse-secondary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #c9cccf;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #202223;
+  font-weight: 800;
+  font-size: 14px;
+  padding: 11px 16px;
+  text-decoration: none;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.storepulse-secondary-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.07);
+}
+
+.storepulse-filter-form {
+  display: grid;
+  grid-template-columns: minmax(170px, 0.8fr) minmax(210px, 1fr) minmax(240px, 1.2fr) auto;
+  gap: 14px;
+  align-items: end;
+}
+
+.storepulse-field {
+  display: grid;
+  gap: 7px;
+}
+
+.storepulse-field span {
+  color: #45484b;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.storepulse-field select,
+.storepulse-field input {
+  width: 100%;
+  border: 1px solid #c9cccf;
+  border-radius: 13px;
+  background: #ffffff;
+  color: #202223;
+  font-size: 14px;
+  padding: 11px 12px;
+}
+
+.storepulse-field select:focus,
+.storepulse-field input:focus {
+  border-color: #008060;
+  outline: 3px solid rgba(0, 128, 96, 0.14);
+}
+
+.storepulse-filter-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.storepulse-text-link {
+  color: #007a5c;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.storepulse-text-link:hover {
+  text-decoration: underline;
+}
+
+.storepulse-issue-heading-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.storepulse-issue-type {
+  display: inline-flex;
+  width: fit-content;
+  margin: 0 0 8px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: #f1f2f3;
+  color: #5c5f62;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.storepulse-product-link {
+  color: #007a5c;
+  font-weight: 800;
+  font-size: 13px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.storepulse-product-link:hover {
+  text-decoration: underline;
+}
+
+.storepulse-product-group-list {
+  display: grid;
+  gap: 12px;
+}
+
+.storepulse-product-group {
+  border: 1px solid #e1e3e5;
+  border-radius: 16px;
+  background: #ffffff;
+  padding: 16px;
+}
+
+.storepulse-product-group h3 {
+  margin: 0 0 5px;
+  font-size: 15px;
+}
+
+.storepulse-product-group p {
+  margin: 0;
+  color: #6d7175;
+  font-size: 13px;
+}
+
+.storepulse-mini-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 12px 0;
+}
+
+.storepulse-mini-badge {
+  border-radius: 999px;
+  padding: 5px 8px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.storepulse-mini-critical {
+  background: #ffe8e8;
+  color: #a32424;
+}
+
+.storepulse-mini-warning {
+  background: #fff1d6;
+  color: #7a4b00;
+}
+
+.storepulse-mini-suggestion {
+  background: #eaf2ff;
+  color: #25539b;
+}
+
+@media (max-width: 1080px) {
+  .storepulse-filter-form {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .storepulse-filter-actions {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 720px) {
+  .storepulse-page-header {
+    flex-direction: column;
+  }
+
+  .storepulse-filter-form {
+    grid-template-columns: 1fr;
+  }
+
+  .storepulse-filter-actions {
+    flex-wrap: wrap;
+  }
+
+  .storepulse-issue-heading-row {
+    flex-direction: column;
+  }
+}
+
 @media (max-width: 980px) {
   .storepulse-two-column {
     grid-template-columns: 1fr;

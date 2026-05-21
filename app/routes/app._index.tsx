@@ -1,4 +1,10 @@
-import { Form, useActionData, useLoaderData, useNavigation } from "react-router";
+import {
+  Form,
+  Link,
+  useActionData,
+  useLoaderData,
+  useNavigation,
+} from "react-router";
 import { authenticate } from "../shopify.server";
 import { getDashboardStats } from "../models/scan.server";
 import { calculateHealthScore } from "../services/health-score.server";
@@ -184,6 +190,10 @@ export default function AppIndex() {
                   The scanner shows the highest-priority issues first.
                 </p>
               </div>
+
+              <Link className="storepulse-secondary-button" to="/app/issues">
+                View all issues
+              </Link>
             </div>
 
             {latestScan && latestScan.issues.length > 0 ? (
