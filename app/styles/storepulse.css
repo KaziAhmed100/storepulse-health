@@ -138,6 +138,105 @@
   font-size: 13px;
 }
 
+.storepulse-score-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.storepulse-grade {
+  display: inline-flex;
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.storepulse-grade-excellent {
+  background: #e6f7ee;
+  color: #0f6b3d;
+}
+
+.storepulse-grade-good {
+  background: #eef6ff;
+  color: #2457a6;
+}
+
+.storepulse-grade-needs-attention {
+  background: #fff3d6;
+  color: #835100;
+}
+
+.storepulse-grade-critical {
+  background: #ffe8e8;
+  color: #a32424;
+}
+
+.storepulse-two-column {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(360px, 0.65fr);
+  gap: 24px;
+}
+
+.storepulse-section-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.storepulse-section-copy {
+  color: #6d7175;
+  margin: 4px 0 0;
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+.storepulse-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid #e1e3e5;
+  border-radius: 16px;
+}
+
+.storepulse-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #ffffff;
+  font-size: 14px;
+}
+
+.storepulse-table th {
+  text-align: left;
+  color: #5c5f62;
+  background: #f6f6f7;
+  padding: 12px;
+  border-bottom: 1px solid #e1e3e5;
+  font-weight: 800;
+}
+
+.storepulse-table td {
+  padding: 12px;
+  border-bottom: 1px solid #edf0f2;
+  color: #42474c;
+}
+
+.storepulse-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.storepulse-table tbody tr:hover {
+  background: #fafafa;
+}
+
+@media (max-width: 980px) {
+  .storepulse-two-column {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 640px) {
   .storepulse-issue {
     grid-template-columns: 1fr;

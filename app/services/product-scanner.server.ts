@@ -1,4 +1,5 @@
 import { createScanRun, type ScanIssueInput } from "../models/scan.server";
+import { calculateHealthScore } from "./health-score.server";
 
 type ShopifyAdminClient = {
   graphql: (
@@ -40,7 +41,7 @@ type ShopifyProduct = {
 };
 
 type ProductsQueryResponse = {
-  data: {
+  data?: {
     products: {
       pageInfo: {
         hasNextPage: boolean;
@@ -49,6 +50,9 @@ type ProductsQueryResponse = {
       nodes: ShopifyProduct[];
     };
   };
+  errors?: Array<{
+    message: string;
+  }>;
 };
 
 const PRODUCTS_QUERY = `#graphql
@@ -101,17 +105,27 @@ export async function runProductScan({
   shopDomain: string;
 }) {
   const products = await fetchProducts(admin);
-  const issues = products.flatMap((product) => detectProductIssues(product));
-  const healthScore = calculateHealthScore(products.length, issues);
+  const issues = sortIssuesByPriority(
+    products.flatMap((product) => detectProductIssues(product)),
+  );
+
+  const scoreResult = calculateHealthScore({
+    productCount: products.length,
+    issues,
+  });
 
   const scan = await createScanRun({
     shopDomain,
-    healthScore,
+    healthScore: scoreResult.score,
     totalProducts: products.length,
     issues,
   });
 
-  return scan;
+  return {
+    ...scan,
+    scoreGrade: scoreResult.grade,
+    scoreSummary: scoreResult.summary,
+  };
 }
 
 /**
@@ -132,6 +146,18 @@ async function fetchProducts(admin: ShopifyAdminClient) {
 
     const payload = (await response.json()) as ProductsQueryResponse;
 
+    if (payload.errors?.length) {
+      const errorMessage = payload.errors
+        .map((error) => error.message)
+        .join(", ");
+
+      throw new Error(`Shopify GraphQL error: ${errorMessage}`);
+    }
+
+    if (!payload.data) {
+      throw new Error("Shopify GraphQL did not return product data.");
+    }
+
     const productPage = payload.data.products;
     products.push(...productPage.nodes);
 
@@ -143,7 +169,7 @@ async function fetchProducts(admin: ShopifyAdminClient) {
 }
 
 /**
- * Applies our first set of practical product, inventory, and SEO rules.
+ * Applies our first practical product, inventory, and SEO rules.
  */
 function detectProductIssues(product: ShopifyProduct): ScanIssueInput[] {
   const issues: ScanIssueInput[] = [];
@@ -234,7 +260,11 @@ function detectProductIssues(product: ShopifyProduct): ScanIssueInput[] {
     });
   }
 
-  if (product.status === "ACTIVE" && product.totalInventory !== null && product.totalInventory <= 0) {
+  if (
+    product.status === "ACTIVE" &&
+    product.totalInventory !== null &&
+    product.totalInventory <= 0
+  ) {
     issues.push({
       productId: product.id,
       productTitle: product.title,
@@ -282,31 +312,16 @@ function detectProductIssues(product: ShopifyProduct): ScanIssueInput[] {
   return issues;
 }
 
-/**
- * Calculates a first-pass store health score.
- * Phase 3 will improve this with clearer weighting and better score messages.
- */
-function calculateHealthScore(
-  productCount: number,
-  issues: ScanIssueInput[],
-): number {
-  if (productCount === 0) {
-    return 100;
-  }
+function sortIssuesByPriority(issues: ScanIssueInput[]) {
+  const priorityWeight = {
+    Critical: 1,
+    Warning: 2,
+    Suggestion: 3,
+  };
 
-  const penalty = issues.reduce((total, issue) => {
-    if (issue.priority === "Critical") {
-      return total + 8;
-    }
-
-    if (issue.priority === "Warning") {
-      return total + 5;
-    }
-
-    return total + 2;
-  }, 0);
-
-  return Math.max(0, 100 - penalty);
+  return [...issues].sort((a, b) => {
+    return priorityWeight[a.priority] - priorityWeight[b.priority];
+  });
 }
 
 function stripHtml(value: string) {

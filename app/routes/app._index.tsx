@@ -1,6 +1,7 @@
 import { Form, useActionData, useLoaderData, useNavigation } from "react-router";
 import { authenticate } from "../shopify.server";
 import { getDashboardStats } from "../models/scan.server";
+import { calculateHealthScore } from "../services/health-score.server";
 import { runProductScan } from "../services/product-scanner.server";
 import styles from "../styles/storepulse.css?url";
 
@@ -10,8 +11,16 @@ export async function loader({ request }: { request: Request }) {
   const { session } = await authenticate.admin(request);
   const dashboard = await getDashboardStats(session.shop);
 
+  const scoreDetails = dashboard.latestScan
+    ? calculateHealthScore({
+        productCount: dashboard.latestScan.totalProducts,
+        issues: dashboard.latestScan.issues,
+      })
+    : null;
+
   return {
     dashboard,
+    scoreDetails,
   };
 }
 
@@ -40,7 +49,7 @@ export async function action({ request }: { request: Request }) {
 }
 
 export default function AppIndex() {
-  const { dashboard } = useLoaderData<typeof loader>();
+  const { dashboard, scoreDetails } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
 
@@ -59,17 +68,17 @@ export default function AppIndex() {
         <section className="storepulse-hero">
           <div className="storepulse-card">
             <div className="storepulse-eyebrow">
-              StorePulse Health · MVP Phase 2
+              StorePulse Health · MVP Phase 3
             </div>
 
             <h1 className="storepulse-title">
-              Scan your Shopify catalog and find issues that deserve attention.
+              Prioritize the catalog fixes that matter most.
             </h1>
 
             <p className="storepulse-subtitle">
               StorePulse Health checks product content, inventory signals, and
-              basic SEO fields, then turns the results into a simple health
-              score and prioritized issue list.
+              basic SEO fields, then turns the results into a store health score,
+              priority summary, and scan history.
             </p>
 
             <div className="storepulse-actions">
@@ -79,7 +88,7 @@ export default function AppIndex() {
                   type="submit"
                   disabled={isScanning}
                 >
-                  {isScanning ? "Scanning products..." : "Run product scan"}
+                  {isScanning ? "Scanning products..." : "Run new scan"}
                 </button>
               </Form>
 
@@ -101,117 +110,175 @@ export default function AppIndex() {
             ) : null}
 
             <div className="storepulse-pill-row">
-              <span className="storepulse-pill">Missing images</span>
-              <span className="storepulse-pill">Weak descriptions</span>
-              <span className="storepulse-pill">SEO gaps</span>
-              <span className="storepulse-pill">Inventory warnings</span>
+              <span className="storepulse-pill">Health score</span>
+              <span className="storepulse-pill">Priority labels</span>
+              <span className="storepulse-pill">Scan history</span>
+              <span className="storepulse-pill">Merchant-friendly fixes</span>
             </div>
           </div>
 
           <div className="storepulse-card storepulse-score-card">
             <div>
               <p className="storepulse-score-label">Current store health score</p>
-              <p className="storepulse-score">{healthScore ?? "--"}</p>
+
+              <div className="storepulse-score-row">
+                <p className="storepulse-score">{healthScore ?? "--"}</p>
+
+                {scoreDetails ? (
+                  <span
+                    className={`storepulse-grade storepulse-grade-${scoreDetails.grade
+                      .toLowerCase()
+                      .replace(/\s+/g, "-")}`}
+                  >
+                    {scoreDetails.grade}
+                  </span>
+                ) : null}
+              </div>
+
               <p className="storepulse-score-note">
-                {latestScan
-                  ? "This score is based on your latest product scan."
+                {scoreDetails
+                  ? scoreDetails.summary
                   : "Run your first scan to generate a health score."}
               </p>
             </div>
 
             {latestScan ? (
               <div className="storepulse-score-meta">
-                Last scan checked {latestScan.totalProducts} product(s).
+                Last scan: {formatDate(latestScan.createdAt)} ·{" "}
+                {latestScan.totalProducts} product(s) checked
               </div>
             ) : null}
           </div>
         </section>
 
         <section className="storepulse-grid">
-          <div className="storepulse-metric">
-            <p className="storepulse-metric-value">{dashboard.scanCount}</p>
-            <p className="storepulse-metric-label">Scans completed</p>
-          </div>
-
-          <div className="storepulse-metric">
-            <p className="storepulse-metric-value">{totalIssues}</p>
-            <p className="storepulse-metric-label">Issues found</p>
-          </div>
-
-          <div className="storepulse-metric">
-            <p className="storepulse-metric-value">{criticalCount}</p>
-            <p className="storepulse-metric-label">Critical fixes</p>
-          </div>
+          <MetricCard value={dashboard.scanCount} label="Scans completed" />
+          <MetricCard value={totalIssues} label="Issues found" />
+          <MetricCard value={latestScan?.totalProducts ?? 0} label="Products checked" />
         </section>
 
         <section className="storepulse-grid">
-          <div className="storepulse-metric storepulse-critical">
-            <p className="storepulse-metric-value">{criticalCount}</p>
-            <p className="storepulse-metric-label">Critical</p>
-          </div>
-
-          <div className="storepulse-metric storepulse-warning">
-            <p className="storepulse-metric-value">{warningCount}</p>
-            <p className="storepulse-metric-label">Warning</p>
-          </div>
-
-          <div className="storepulse-metric storepulse-suggestion">
-            <p className="storepulse-metric-value">{suggestionCount}</p>
-            <p className="storepulse-metric-label">Suggestion</p>
-          </div>
+          <MetricCard
+            value={criticalCount}
+            label="Critical"
+            extraClassName="storepulse-critical"
+          />
+          <MetricCard
+            value={warningCount}
+            label="Warning"
+            extraClassName="storepulse-warning"
+          />
+          <MetricCard
+            value={suggestionCount}
+            label="Suggestion"
+            extraClassName="storepulse-suggestion"
+          />
         </section>
 
-        <section className="storepulse-card">
-          <h2 className="storepulse-section-title">Latest issues found</h2>
+        <section className="storepulse-two-column">
+          <section className="storepulse-card">
+            <div className="storepulse-section-heading">
+              <div>
+                <h2 className="storepulse-section-title">Latest priority issues</h2>
+                <p className="storepulse-section-copy">
+                  The scanner shows the highest-priority issues first.
+                </p>
+              </div>
+            </div>
 
-          {latestScan && latestScan.issues.length > 0 ? (
-            <div className="storepulse-issue-list">
-              {latestScan.issues.map((issue) => (
-                <article className="storepulse-issue" key={issue.id}>
-                  <div>
-                    <span
-                      className={`storepulse-priority storepulse-priority-${issue.priority.toLowerCase()}`}
-                    >
-                      {issue.priority}
-                    </span>
-                  </div>
+            {latestScan && latestScan.issues.length > 0 ? (
+              <div className="storepulse-issue-list">
+                {latestScan.issues.map((issue) => (
+                  <article className="storepulse-issue" key={issue.id}>
+                    <div>
+                      <span
+                        className={`storepulse-priority storepulse-priority-${issue.priority.toLowerCase()}`}
+                      >
+                        {issue.priority}
+                      </span>
+                    </div>
 
-                  <div>
-                    <h3 className="storepulse-issue-title">
-                      {issue.productTitle}
-                    </h3>
-                    <p className="storepulse-issue-message">{issue.message}</p>
-                    <p className="storepulse-issue-fix">
-                      Fix: {issue.suggestedFix}
-                    </p>
-                  </div>
-                </article>
-              ))}
+                    <div>
+                      <h3 className="storepulse-issue-title">
+                        {issue.productTitle}
+                      </h3>
+                      <p className="storepulse-issue-message">{issue.message}</p>
+                      <p className="storepulse-issue-fix">
+                        Fix: {issue.suggestedFix}
+                      </p>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : latestScan ? (
+              <div className="storepulse-empty">
+                Great start. The latest scan did not find any issues using the
+                current MVP rules.
+              </div>
+            ) : (
+              <div className="storepulse-empty">
+                No scan history yet. Click <strong>Run new scan</strong> to check
+                your development store products.
+              </div>
+            )}
+          </section>
+
+          <section className="storepulse-card">
+            <div className="storepulse-section-heading">
+              <div>
+                <h2 className="storepulse-section-title">Scan history</h2>
+                <p className="storepulse-section-copy">
+                  Recent scans help merchants see whether the store is improving.
+                </p>
+              </div>
             </div>
-          ) : latestScan ? (
-            <div className="storepulse-empty">
-              Great start. The latest scan did not find any issues using the
-              current MVP rules.
-            </div>
-          ) : (
-            <div className="storepulse-empty">
-              No scan history yet. Click <strong>Run product scan</strong> to
-              check your development store products.
-            </div>
-          )}
+
+            {dashboard.scanHistory.length > 0 ? (
+              <div className="storepulse-table-wrap">
+                <table className="storepulse-table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Score</th>
+                      <th>Issues</th>
+                      <th>Critical</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {dashboard.scanHistory.map((scan) => (
+                      <tr key={scan.id}>
+                        <td>{formatDate(scan.createdAt)}</td>
+                        <td>
+                          <strong>{scan.healthScore}</strong>
+                        </td>
+                        <td>{scan.totalIssues}</td>
+                        <td>{scan.criticalCount}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="storepulse-empty">
+                No scan history yet. Your completed scans will appear here.
+              </div>
+            )}
+          </section>
         </section>
 
         <section className="storepulse-card" style={{ marginTop: "24px" }}>
-          <h2 className="storepulse-section-title">What this scanner checks</h2>
+          <h2 className="storepulse-section-title">How to use this score</h2>
 
           <div className="storepulse-checklist">
             <div className="storepulse-check-item">
               <div className="storepulse-check-icon">1</div>
               <div>
-                <p className="storepulse-check-title">Product content quality</p>
+                <p className="storepulse-check-title">
+                  Fix critical issues first
+                </p>
                 <p className="storepulse-check-copy">
-                  Missing images, short descriptions, short titles, missing
-                  vendor, and missing product type.
+                  Critical issues usually affect product trust, inventory
+                  readiness, or pricing accuracy.
                 </p>
               </div>
             </div>
@@ -219,10 +286,12 @@ export default function AppIndex() {
             <div className="storepulse-check-item">
               <div className="storepulse-check-icon">2</div>
               <div>
-                <p className="storepulse-check-title">Inventory and variant setup</p>
+                <p className="storepulse-check-title">
+                  Improve SEO and product descriptions
+                </p>
                 <p className="storepulse-check-copy">
-                  Active products with zero inventory, variants without SKUs,
-                  and variants with zero pricing.
+                  Warning-level issues help merchants improve search visibility
+                  and product page clarity.
                 </p>
               </div>
             </div>
@@ -230,9 +299,12 @@ export default function AppIndex() {
             <div className="storepulse-check-item">
               <div className="storepulse-check-icon">3</div>
               <div>
-                <p className="storepulse-check-title">Basic SEO readiness</p>
+                <p className="storepulse-check-title">
+                  Track progress after every cleanup
+                </p>
                 <p className="storepulse-check-copy">
-                  Missing or weak SEO titles and SEO descriptions.
+                  Run another scan after making fixes to see whether the score
+                  and issue counts improve.
                 </p>
               </div>
             </div>
@@ -245,4 +317,31 @@ export default function AppIndex() {
       </div>
     </main>
   );
+}
+
+function MetricCard({
+  value,
+  label,
+  extraClassName = "",
+}: {
+  value: number;
+  label: string;
+  extraClassName?: string;
+}) {
+  return (
+    <div className={`storepulse-metric ${extraClassName}`}>
+      <p className="storepulse-metric-value">{value}</p>
+      <p className="storepulse-metric-label">{label}</p>
+    </div>
+  );
+}
+
+function formatDate(value: string | Date) {
+  return new Intl.DateTimeFormat("en", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(new Date(value));
 }

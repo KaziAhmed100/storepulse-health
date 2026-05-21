@@ -75,7 +75,7 @@ export async function createScanRun({
 }
 
 /**
- * Returns the latest scan and simple dashboard numbers.
+ * Returns the latest scan, a short scan history, and dashboard numbers.
  */
 export async function getDashboardStats(shopDomain: string) {
   const shop = await ensureShop(shopDomain);
@@ -102,6 +102,27 @@ export async function getDashboardStats(shopDomain: string) {
     },
   });
 
+  const scanHistory = await db.scan.findMany({
+    where: {
+      shopDomain: shop.shopDomain,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+    take: 8,
+    select: {
+      id: true,
+      healthScore: true,
+      totalProducts: true,
+      totalIssues: true,
+      criticalCount: true,
+      warningCount: true,
+      suggestionCount: true,
+      status: true,
+      createdAt: true,
+    },
+  });
+
   const scanCount = await db.scan.count({
     where: {
       shopDomain: shop.shopDomain,
@@ -112,5 +133,6 @@ export async function getDashboardStats(shopDomain: string) {
     shopDomain: shop.shopDomain,
     scanCount,
     latestScan,
+    scanHistory,
   };
 }
