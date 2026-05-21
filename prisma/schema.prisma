@@ -1,0 +1,73 @@
+// This schema keeps Shopify's session storage and adds the tables
+// we need for StorePulse Health scans.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:dev.sqlite"
+}
+
+model Session {
+  id            String    @id
+  shop          String
+  state         String
+  isOnline      Boolean   @default(false)
+  scope         String?
+  expires       DateTime?
+  accessToken   String
+  userId        BigInt?
+  firstName     String?
+  lastName      String?
+  email         String?
+  accountOwner  Boolean   @default(false)
+  locale        String?
+  collaborator  Boolean?  @default(false)
+  emailVerified Boolean?  @default(false)
+}
+
+model Shop {
+  id         String   @id @default(cuid())
+  shopDomain String   @unique
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  scans Scan[]
+}
+
+model Scan {
+  id              String   @id @default(cuid())
+  shopDomain      String
+  healthScore     Int      @default(100)
+  totalProducts   Int      @default(0)
+  totalIssues     Int      @default(0)
+  criticalCount   Int      @default(0)
+  warningCount    Int      @default(0)
+  suggestionCount Int      @default(0)
+  status          String   @default("COMPLETED")
+  createdAt       DateTime @default(now())
+
+  shop   Shop    @relation(fields: [shopDomain], references: [shopDomain])
+  issues Issue[]
+
+  @@index([shopDomain])
+}
+
+model Issue {
+  id           String   @id @default(cuid())
+  scanId       String
+  productId    String
+  productTitle String
+  issueType    String
+  priority     String
+  message      String
+  suggestedFix String
+  createdAt    DateTime @default(now())
+
+  scan Scan @relation(fields: [scanId], references: [id], onDelete: Cascade)
+
+  @@index([scanId])
+  @@index([priority])
+}
