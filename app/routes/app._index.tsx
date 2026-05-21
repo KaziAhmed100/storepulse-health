@@ -71,20 +71,21 @@ export default function AppIndex() {
   return (
     <main className="storepulse-page">
       <div className="storepulse-shell">
-        <section className="storepulse-hero">
-          <div className="storepulse-card">
+        <section className="storepulse-hero-v2">
+          <div className="storepulse-hero-copy">
             <div className="storepulse-eyebrow">
-              StorePulse Health · MVP Phase 3
+              <span className="storepulse-dot" />
+              StorePulse Health · Shopify Admin App
             </div>
 
             <h1 className="storepulse-title">
-              Prioritize the catalog fixes that matter most.
+              A fun, practical health monitor for Shopify catalogs.
             </h1>
 
             <p className="storepulse-subtitle">
-              StorePulse Health checks product content, inventory signals, and
-              basic SEO fields, then turns the results into a store health score,
-              priority summary, and scan history.
+              Scan product content, inventory signals, and SEO fields. Then
+              turn messy catalog data into a clean health score, priority list,
+              and merchant-friendly action plan.
             </p>
 
             <div className="storepulse-actions">
@@ -98,9 +99,9 @@ export default function AppIndex() {
                 </button>
               </Form>
 
-              <span className="storepulse-action-note">
-                Scans up to 250 recently updated products in this MVP.
-              </span>
+              <Link className="storepulse-secondary-button" to="/app/issues">
+                View all issues
+              </Link>
             </div>
 
             {actionData?.message ? (
@@ -115,69 +116,87 @@ export default function AppIndex() {
               </div>
             ) : null}
 
-            <div className="storepulse-pill-row">
-              <span className="storepulse-pill">Health score</span>
-              <span className="storepulse-pill">Priority labels</span>
-              <span className="storepulse-pill">Scan history</span>
-              <span className="storepulse-pill">Merchant-friendly fixes</span>
+            <div className="storepulse-chip-row">
+              <span>Product images</span>
+              <span>SEO titles</span>
+              <span>Descriptions</span>
+              <span>Inventory</span>
+              <span>SKUs</span>
             </div>
           </div>
 
-          <div className="storepulse-card storepulse-score-card">
-            <div>
-              <p className="storepulse-score-label">Current store health score</p>
-
-              <div className="storepulse-score-row">
-                <p className="storepulse-score">{healthScore ?? "--"}</p>
-
-                {scoreDetails ? (
-                  <span
-                    className={`storepulse-grade storepulse-grade-${scoreDetails.grade
-                      .toLowerCase()
-                      .replace(/\s+/g, "-")}`}
-                  >
-                    {scoreDetails.grade}
-                  </span>
-                ) : null}
+          <div className="storepulse-score-panel">
+            <div className="storepulse-score-orbit">
+              <div className="storepulse-score-circle">
+                <span className="storepulse-score-label">Health score</span>
+                <strong>{healthScore ?? "--"}</strong>
+                <span className="storepulse-score-total">/ 100</span>
               </div>
-
-              <p className="storepulse-score-note">
-                {scoreDetails
-                  ? scoreDetails.summary
-                  : "Run your first scan to generate a health score."}
-              </p>
             </div>
 
-            {latestScan ? (
-              <div className="storepulse-score-meta">
-                Last scan: {formatDate(latestScan.createdAt)} ·{" "}
-                {latestScan.totalProducts} product(s) checked
+            {scoreDetails ? (
+              <div
+                className={`storepulse-grade-card storepulse-grade-${scoreDetails.grade
+                  .toLowerCase()
+                  .replace(/\s+/g, "-")}`}
+              >
+                <span>{scoreDetails.grade}</span>
+                <p>{scoreDetails.summary}</p>
               </div>
+            ) : (
+              <div className="storepulse-grade-card">
+                <span>No scan yet</span>
+                <p>Run your first scan to calculate the store health score.</p>
+              </div>
+            )}
+
+            {latestScan ? (
+              <p className="storepulse-last-scan">
+                Last scan: {formatDate(latestScan.createdAt)} ·{" "}
+                {latestScan.totalProducts} product(s)
+              </p>
             ) : null}
           </div>
         </section>
 
-        <section className="storepulse-grid">
-          <MetricCard value={dashboard.scanCount} label="Scans completed" />
-          <MetricCard value={totalIssues} label="Issues found" />
-          <MetricCard value={latestScan?.totalProducts ?? 0} label="Products checked" />
-        </section>
-
-        <section className="storepulse-grid">
+        <section className="storepulse-metric-grid">
+          <MetricCard
+            value={dashboard.scanCount}
+            label="Scans completed"
+            icon="↻"
+          />
+          <MetricCard value={totalIssues} label="Issues found" icon="!" />
+          <MetricCard
+            value={latestScan?.totalProducts ?? 0}
+            label="Products checked"
+            icon="◆"
+          />
           <MetricCard
             value={criticalCount}
+            label="Critical fixes"
+            icon="●"
+            extraClassName="storepulse-critical-card"
+          />
+        </section>
+
+        <section className="storepulse-priority-strip">
+          <PriorityBlock
             label="Critical"
-            extraClassName="storepulse-critical"
+            value={criticalCount}
+            copy="Fix first"
+            type="critical"
           />
-          <MetricCard
-            value={warningCount}
+          <PriorityBlock
             label="Warning"
-            extraClassName="storepulse-warning"
+            value={warningCount}
+            copy="Improve soon"
+            type="warning"
           />
-          <MetricCard
-            value={suggestionCount}
+          <PriorityBlock
             label="Suggestion"
-            extraClassName="storepulse-suggestion"
+            value={suggestionCount}
+            copy="Nice upgrades"
+            type="suggestion"
           />
         </section>
 
@@ -185,14 +204,17 @@ export default function AppIndex() {
           <section className="storepulse-card">
             <div className="storepulse-section-heading">
               <div>
-                <h2 className="storepulse-section-title">Latest priority issues</h2>
+                <p className="storepulse-section-kicker">Latest scan</p>
+                <h2 className="storepulse-section-title">
+                  Highest priority issues
+                </h2>
                 <p className="storepulse-section-copy">
-                  The scanner shows the highest-priority issues first.
+                  A quick look at the problems merchants should notice first.
                 </p>
               </div>
 
               <Link className="storepulse-secondary-button" to="/app/issues">
-                View all issues
+                View all
               </Link>
             </div>
 
@@ -227,8 +249,8 @@ export default function AppIndex() {
               </div>
             ) : (
               <div className="storepulse-empty">
-                No scan history yet. Click <strong>Run new scan</strong> to check
-                your development store products.
+                No scan history yet. Click <strong>Run new scan</strong> to
+                check your development store products.
               </div>
             )}
           </section>
@@ -236,9 +258,10 @@ export default function AppIndex() {
           <section className="storepulse-card">
             <div className="storepulse-section-heading">
               <div>
+                <p className="storepulse-section-kicker">Progress</p>
                 <h2 className="storepulse-section-title">Scan history</h2>
                 <p className="storepulse-section-copy">
-                  Recent scans help merchants see whether the store is improving.
+                  Use repeated scans to show catalog cleanup progress.
                 </p>
               </div>
             </div>
@@ -270,54 +293,36 @@ export default function AppIndex() {
               </div>
             ) : (
               <div className="storepulse-empty">
-                No scan history yet. Your completed scans will appear here.
+                Completed scans will appear here.
               </div>
             )}
           </section>
         </section>
 
-        <section className="storepulse-card" style={{ marginTop: "24px" }}>
-          <h2 className="storepulse-section-title">How to use this score</h2>
+        <section className="storepulse-card storepulse-playbook">
+          <div>
+            <p className="storepulse-section-kicker">Merchant playbook</p>
+            <h2 className="storepulse-section-title">
+              How to improve the score
+            </h2>
+          </div>
 
-          <div className="storepulse-checklist">
-            <div className="storepulse-check-item">
-              <div className="storepulse-check-icon">1</div>
-              <div>
-                <p className="storepulse-check-title">
-                  Fix critical issues first
-                </p>
-                <p className="storepulse-check-copy">
-                  Critical issues usually affect product trust, inventory
-                  readiness, or pricing accuracy.
-                </p>
-              </div>
-            </div>
-
-            <div className="storepulse-check-item">
-              <div className="storepulse-check-icon">2</div>
-              <div>
-                <p className="storepulse-check-title">
-                  Improve SEO and product descriptions
-                </p>
-                <p className="storepulse-check-copy">
-                  Warning-level issues help merchants improve search visibility
-                  and product page clarity.
-                </p>
-              </div>
-            </div>
-
-            <div className="storepulse-check-item">
-              <div className="storepulse-check-icon">3</div>
-              <div>
-                <p className="storepulse-check-title">
-                  Track progress after every cleanup
-                </p>
-                <p className="storepulse-check-copy">
-                  Run another scan after making fixes to see whether the score
-                  and issue counts improve.
-                </p>
-              </div>
-            </div>
+          <div className="storepulse-playbook-grid">
+            <PlaybookItem
+              number="01"
+              title="Fix critical blockers"
+              copy="Start with missing images, zero-price variants, and active products that appear out of stock."
+            />
+            <PlaybookItem
+              number="02"
+              title="Strengthen product pages"
+              copy="Improve thin descriptions, weak SEO titles, and missing SEO descriptions."
+            />
+            <PlaybookItem
+              number="03"
+              title="Clean catalog operations"
+              copy="Add SKUs, product types, and vendor values so reporting and filtering work better."
+            />
           </div>
         </section>
 
@@ -332,17 +337,58 @@ export default function AppIndex() {
 function MetricCard({
   value,
   label,
+  icon,
   extraClassName = "",
 }: {
   value: number;
   label: string;
+  icon: string;
   extraClassName?: string;
 }) {
   return (
-    <div className={`storepulse-metric ${extraClassName}`}>
+    <div className={`storepulse-metric-card ${extraClassName}`}>
+      <div className="storepulse-metric-icon">{icon}</div>
       <p className="storepulse-metric-value">{value}</p>
       <p className="storepulse-metric-label">{label}</p>
     </div>
+  );
+}
+
+function PriorityBlock({
+  label,
+  value,
+  copy,
+  type,
+}: {
+  label: string;
+  value: number;
+  copy: string;
+  type: "critical" | "warning" | "suggestion";
+}) {
+  return (
+    <div className={`storepulse-priority-block storepulse-priority-block-${type}`}>
+      <span>{label}</span>
+      <strong>{value}</strong>
+      <p>{copy}</p>
+    </div>
+  );
+}
+
+function PlaybookItem({
+  number,
+  title,
+  copy,
+}: {
+  number: string;
+  title: string;
+  copy: string;
+}) {
+  return (
+    <article className="storepulse-playbook-item">
+      <span>{number}</span>
+      <h3>{title}</h3>
+      <p>{copy}</p>
+    </article>
   );
 }
 

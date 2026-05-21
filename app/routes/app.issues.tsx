@@ -46,69 +46,57 @@ export default function IssuesPage() {
   return (
     <main className="storepulse-page">
       <div className="storepulse-shell">
-        <section className="storepulse-card storepulse-page-header">
+        <section className="storepulse-page-hero">
           <div>
             <div className="storepulse-eyebrow">
-              StorePulse Health · Issue Detail View
+              <span className="storepulse-dot" />
+              Issue Detail View
             </div>
 
-            <h1 className="storepulse-title">Product issues from the latest scan</h1>
+            <h1 className="storepulse-title">
+              Every product issue, organized for action.
+            </h1>
 
             <p className="storepulse-subtitle">
-              Review the exact product, inventory, and SEO issues that were
-              found. Start with critical issues, then move to warnings and
-              suggestions.
+              Filter the latest scan by priority, issue type, or product name.
+              Each row gives merchants a practical next step and a shortcut back
+              to the Shopify product.
             </p>
           </div>
 
-          <div className="storepulse-header-actions">
-            <Link className="storepulse-secondary-button" to="/app">
-              Back to dashboard
-            </Link>
-          </div>
+          <Link className="storepulse-secondary-button" to="/app">
+            Back to dashboard
+          </Link>
         </section>
 
-        <section className="storepulse-grid">
+        <section className="storepulse-metric-grid">
           <MetricCard
             value={issueData.summary.totalIssues}
             label="Matching issues"
+            icon="!"
           />
           <MetricCard
             value={issueData.summary.totalProductsWithIssues}
             label="Products affected"
+            icon="◆"
           />
           <MetricCard
             value={issueData.latestScan?.healthScore ?? 0}
-            label="Latest health score"
+            label="Latest score"
+            icon="★"
           />
-        </section>
-
-        <section className="storepulse-grid">
           <MetricCard
             value={issueData.summary.criticalCount}
             label="Critical"
-            extraClassName="storepulse-critical"
-          />
-          <MetricCard
-            value={issueData.summary.warningCount}
-            label="Warning"
-            extraClassName="storepulse-warning"
-          />
-          <MetricCard
-            value={issueData.summary.suggestionCount}
-            label="Suggestion"
-            extraClassName="storepulse-suggestion"
+            icon="●"
+            extraClassName="storepulse-critical-card"
           />
         </section>
 
-        <section className="storepulse-card">
-          <div className="storepulse-section-heading">
-            <div>
-              <h2 className="storepulse-section-title">Filter issues</h2>
-              <p className="storepulse-section-copy">
-                Narrow the list by priority, issue type, or product title.
-              </p>
-            </div>
+        <section className="storepulse-filter-card">
+          <div>
+            <p className="storepulse-section-kicker">Filters</p>
+            <h2 className="storepulse-section-title">Find the right fix</h2>
           </div>
 
           <Form method="get" className="storepulse-filter-form">
@@ -150,7 +138,7 @@ export default function IssuesPage() {
               </button>
 
               <Link className="storepulse-text-link" to="/app/issues">
-                Clear filters
+                Clear
               </Link>
             </div>
           </Form>
@@ -160,9 +148,10 @@ export default function IssuesPage() {
           <section className="storepulse-card">
             <div className="storepulse-section-heading">
               <div>
+                <p className="storepulse-section-kicker">Action list</p>
                 <h2 className="storepulse-section-title">Issues</h2>
                 <p className="storepulse-section-copy">
-                  Each issue includes a suggested merchant action.
+                  Sorted so the most important fixes appear first.
                 </p>
               </div>
             </div>
@@ -214,8 +203,8 @@ export default function IssuesPage() {
               </div>
             ) : (
               <div className="storepulse-empty">
-                No issues match the current filters. Try clearing the filters or
-                running a new scan.
+                No issues match these filters. Try clearing filters or running a
+                fresh scan.
               </div>
             )}
           </section>
@@ -223,9 +212,10 @@ export default function IssuesPage() {
           <section className="storepulse-card">
             <div className="storepulse-section-heading">
               <div>
+                <p className="storepulse-section-kicker">Grouped view</p>
                 <h2 className="storepulse-section-title">Products affected</h2>
                 <p className="storepulse-section-copy">
-                  Products are sorted by critical issue count first.
+                  Quickly see which products need the most attention.
                 </p>
               </div>
             </div>
@@ -296,14 +286,17 @@ export default function IssuesPage() {
 function MetricCard({
   value,
   label,
+  icon,
   extraClassName = "",
 }: {
   value: number;
   label: string;
+  icon: string;
   extraClassName?: string;
 }) {
   return (
-    <div className={`storepulse-metric ${extraClassName}`}>
+    <div className={`storepulse-metric-card ${extraClassName}`}>
+      <div className="storepulse-metric-icon">{icon}</div>
       <p className="storepulse-metric-value">{value}</p>
       <p className="storepulse-metric-label">{label}</p>
     </div>
