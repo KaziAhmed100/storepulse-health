@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "e33e806d5c0872eea7a0dff7f72c03d1"
-application_url = "https://example.com"
+application_url = "https://storepulse-health.onrender.com/"
 embedded = true
 name = "storepulse-health"
 
@@ -20,8 +20,7 @@ api_version = "2026-07"
   topics = [ "app/scopes_update" ]
 
 [auth]
-redirect_urls = [ "https://example.com/api/auth" ]
+redirect_urls = [ "https://storepulse-health.onrender.com/api/auth" ]
 
 [build]
-include_config_on_deploy = true
 automatically_update_urls_on_dev = true
