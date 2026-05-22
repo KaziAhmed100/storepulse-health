@@ -158,9 +158,9 @@ const styles: Record<string, React.CSSProperties> = {
   },
   title: {
     margin: "0 0 18px",
-    fontSize: "clamp(38px, 6vw, 72px)",
-    lineHeight: 0.94,
-    letterSpacing: "-0.07em",
+    fontSize: "clamp(32px, 4.6vw, 58px)",
+    lineHeight: 0.98,
+    letterSpacing: "-0.06em",
     fontWeight: 950,
   },
   subtitle: {
