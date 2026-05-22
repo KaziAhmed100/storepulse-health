@@ -1,4 +1,10 @@
-import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router";
+import {
+  Links,
+  Meta,
+  Outlet,
+  Scripts,
+  ScrollRestoration,
+} from "react-router";
 
 export default function App() {
   return (
@@ -12,10 +18,11 @@ export default function App() {
           rel="stylesheet"
           href="https://cdn.shopify.com/static/fonts/inter/v4/styles.css"
         />
-        <link rel="icon" type="image/svg+xml" href="public/favicon.svg"></link>
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <Meta />
         <Links />
       </head>
+
       <body>
         <Outlet />
         <ScrollRestoration />
