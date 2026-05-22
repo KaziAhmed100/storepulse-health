@@ -1,7 +1,16 @@
 import type { ActionFunctionArgs } from "react-router";
 import { Form, redirect, useActionData } from "react-router";
 
-export const loader = async () => {
+export const loader = async ({ request }: { request: Request }) => {
+  const url = new URL(request.url);
+
+  const shop = url.searchParams.get("shop");
+  const host = url.searchParams.get("host");
+  const embedded = url.searchParams.get("embedded");
+
+  if (shop || host || embedded) {
+    return redirect(`/app?${url.searchParams.toString()}`);
+  }
   return null;
 };
 
